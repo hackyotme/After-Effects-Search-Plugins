@@ -1,0 +1,1304 @@
+<!-- Title: Telegram Mini App AE HACKYO (Multi-language Pro & Elite Light Theme) -->
+<!-- filepath: index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AE Plugins Elite</title>
+    <!-- Подключаем Telegram WebApp API -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Подключаем линейные иконки Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            /* По умолчанию: Глубокий OLED черный */
+            --bg-color: #000000;
+            --card-bg: #0c0c0e;
+            --text-color: #ffffff;
+            --text-muted: #7e7e82;
+            --btn-bg: #ffffff;
+            --btn-text: #000000;
+            --nav-bg: rgba(12, 12, 14, 0.85);
+            --border-color: #1c1c1e;
+            --accent-blue: #2481cc;
+            --accent-purple: #af52de;
+            --select-bg: #1c1c1e;
+            --shadow: none;
+        }
+
+        /* Обновленная, чистая и дорогая светлая тема */
+        [data-theme="light"] {
+            --bg-color: #ffffff;
+            --card-bg: #f9f9fb;
+            --text-color: #111111;
+            --text-muted: #66666c;
+            --btn-bg: #111111;
+            --btn-text: #ffffff;
+            --nav-bg: rgba(249, 249, 249, 0.9);
+            --border-color: #efeff3;
+            --select-bg: #efeff3;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* КАНВАС ДЛЯ ЛЕТАЮЩИХ ЧАСТИЦ */
+        #particles-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .app-wrapper {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* ШАПКА */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo { font-weight: bold; font-size: 16px; letter-spacing: 0.5px;}
+        .badges { display: flex; gap: 8px; }
+        .badge {
+            background-color: var(--card-bg);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        /* iOS ИНДИКАТОР СТРАНИЦ */
+        .page-indicator-container {
+            width: 100%;
+            height: 2px;
+            background-color: var(--border-color);
+            position: relative;
+        }
+        .page-indicator-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 33.33%;
+            height: 100%;
+            background-color: var(--text-color);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ЭКРАНЫ */
+        .content-screen {
+            display: none;
+            flex: 1;
+            padding: 15px 20px 110px 20px;
+            overflow-y: auto;
+            opacity: 0;
+        }
+        .content-screen.active { 
+            display: block; 
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .welcome-section { text-align: center; margin-top: 10px; }
+        .welcome-title { font-size: 26px; font-weight: 800; margin-bottom: 5px; }
+        .welcome-subtitle { color: var(--text-muted); font-size: 14px; margin-top: 0; margin-bottom: 25px; }
+
+        /* КАРТОЧКИ С ПРУЖИНОЙ */
+        .premium-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .premium-card:active { transform: scale(0.97); }
+
+        .line-icon-large {
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .line-icon-large svg { width: 42px; height: 42px; stroke-width: 1.5; }
+        .inline-icon { width: 16px; height: 16px; stroke-width: 2; vertical-align: text-bottom; margin-right: 5px; color: var(--text-color); }
+        .arrow-icon { width: 18px; height: 18px; color: var(--text-muted); stroke-width: 1.5; }
+
+        .premium-card h2 { font-size: 22px; margin: 0 0 8px 0; }
+        .premium-card p { color: var(--text-muted); font-size: 14px; margin: 0 0 20px 0; line-height: 1.4; }
+
+        .main-btn {
+            background-color: var(--btn-bg); color: var(--btn-text);
+            border: none; width: 100%; padding: 14px; border-radius: 14px;
+            font-weight: bold; font-size: 15px; cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        .main-btn:active { transform: scale(0.95); }
+
+        .section-title {
+            font-size: 13px; font-weight: bold; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 10px 5px;
+            text-align: left;
+        }
+
+        .info-card-large {
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 18px; text-align: left; box-shadow: var(--shadow);
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .info-card-large p { font-size: 14px; margin: 0; line-height: 1.4; color: var(--text-color); opacity: 0.9; }
+
+        /* FAQ */
+        .faq-container { display: flex; flex-direction: column; gap: 8px; }
+        .faq-item {
+            background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px;
+            overflow: hidden; text-align: left; box-shadow: var(--shadow);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .faq-item:active { transform: scale(0.99); }
+        .faq-question {
+            padding: 16px; font-size: 15px; font-weight: 600; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .faq-question svg { width: 18px; height: 18px; transition: transform 0.3s ease; color: var(--text-muted); }
+        .faq-answer {
+            max-height: 0; padding: 0 16px; font-size: 13px; color: var(--text-muted);
+            line-height: 1.4; overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+            opacity: 0;
+        }
+        .faq-item.open { background-color: var(--border-color); }
+        .faq-item.open:active { transform: none; }
+        .faq-item.open .faq-question svg { transform: rotate(45deg); color: var(--text-color); }
+        .faq-item.open .faq-answer { opacity: 1; padding: 0 16px 16px 16px; }
+
+        /* ПОИСК И ФИЛЬТРЫ ИЗБРАННОГО */
+        .search-and-filters {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        #plugin-search {
+            width: 100%; background-color: var(--card-bg); border: 1px solid var(--border-color);
+            padding: 14px; border-radius: 14px; color: var(--text-color); font-size: 14px; box-sizing: border-box;
+            box-shadow: var(--shadow); transition: border-color 0.2s ease;
+        }
+        #plugin-search:focus { border-color: var(--accent-blue); outline: none; }
+
+        .filter-tabs {
+            display: flex;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .filter-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .filter-tab.active {
+            background-color: var(--border-color);
+            color: var(--text-color);
+        }
+
+        /* КАРТОЧКА ПЛАГИНА */
+        .plugin-list { display: flex; flex-direction: column; gap: 10px; }
+        
+        .plugin-item {
+            background-color: var(--card-bg); 
+            border: 1px solid var(--border-color);
+            border-radius: 18px; 
+            padding: 16px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            text-align: left; 
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .plugin-click-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: calc(100% - 130px);
+            height: 100%;
+            z-index: 5;
+            cursor: pointer;
+        }
+        .plugin-item:has(.plugin-click-area:active) {
+            transform: scale(0.97);
+        }
+
+        .plugin-header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+        .plugin-info h4 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text-color); }
+        .plugin-info p { margin: 0; font-size: 13px; color: var(--text-muted); max-width: 190px; line-height: 1.3;}
+        .tag { font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 6px; }
+        .tag.win { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .tag.hybrid { background-color: rgba(168, 85, 247, 0.1); color: #a855f7; }
+        
+        .plugin-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 10;
+        }
+        .fav-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease, transform 0.1s ease;
+        }
+        .fav-btn:active { transform: scale(0.75) !important; }
+        .fav-btn.active { color: #ffd60a; }
+
+        .plugin-btn {
+            background-color: var(--border-color); color: var(--text-color); border: 1px solid var(--border-color);
+            padding: 10px 16px; border-radius: 12px; font-weight: bold; font-size: 13px; cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .plugin-btn:active { transform: scale(0.9) !important; }
+
+        /* КАРТОЧКА ЗАКАЗА ПЛАГИНА */
+        .request-card {
+            background: var(--card-bg);
+            border: 1px dashed var(--text-muted);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .request-card h3 { margin: 0 0 6px 0; font-size: 16px; font-weight: 700; }
+        .request-card p { margin: 0 0 15px 0; font-size: 13px; color: var(--text-muted); }
+        .request-btn {
+            background-color: var(--btn-bg); color: var(--btn-text); border: none;
+            padding: 10px 20px; border-radius: 10px; font-weight: bold; font-size: 13px; cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        .request-btn:active { transform: scale(0.95); }
+
+        /* НАСТРОЙКИ */
+        .settings-list { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+        .setting-item {
+            background-color: var(--card-bg); border: 1px solid var(--border-color); box-shadow: var(--shadow);
+            border-radius: 16px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+        }
+        .setting-item.click-item:active {
+            transform: scale(0.96);
+            background-color: var(--border-color);
+        }
+        .setting-text { display: flex; flex-direction: column; gap: 2px; }
+        .setting-name { font-size: 15px; font-weight: 600; }
+        .setting-desc { font-size: 12px; color: var(--text-muted); }
+
+        /* ВЫПАДАЮЩИЙ СПИСОК ЯЗЫКОВ */
+        .lang-select {
+            background-color: var(--select-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* ТУМБЛЕРЫ */
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--border-color); transition: .2s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+            background-color: white; transition: .2s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #34c759; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* ТАББАР */
+        .bottom-nav {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 40px); background: var(--nav-bg); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color);
+            border-radius: 25px; display: flex; justify-content: space-around; padding: 10px 0; z-index: 9999;
+        }
+        .nav-item { 
+            display: flex; flex-direction: column; align-items: center; 
+            color: var(--text-muted); font-size: 11px; cursor: pointer; width: 70px;
+            transition: color 0.2s ease, transform 0.1s ease;
+        }
+        .nav-item:active { transform: scale(0.9); }
+        .nav-icon svg { 
+            width: 22px; height: 22px; stroke-width: 1.75; margin-bottom: 4px;
+            transition: transform 0.2s ease;
+        }
+        .nav-item.active { color: var(--text-color); }
+        .nav-item.active .nav-icon svg { transform: scale(1.1); color: var(--text-color); }
+
+        /* МОДАЛ */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 10000; display: none; align-items: flex-end;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-container {
+            width: 100%; background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            border-top-left-radius: 24px; border-top-right-radius: 24px;
+            padding: 25px 20px 40px 20px; box-sizing: border-box;
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-container { transform: translateY(0); }
+
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .modal-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
+        .close-modal-btn {
+            background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px;
+        }
+        .modal-input {
+            width: 100%; background-color: var(--border-color); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 14px; color: var(--text-color); font-size: 14px; box-sizing: border-box;
+            margin-bottom: 15px; transition: border-color 0.2s ease;
+        }
+        .modal-input:focus { border-color: var(--accent-blue); outline: none; }
+
+        /* SPLASH SCREEN */
+        .splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000000; z-index: 100000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .splash-screen.fade-out { opacity: 0; visibility: hidden; }
+        .splash-logo {
+            font-size: 32px; font-weight: 900; letter-spacing: 1px; margin-bottom: 30px;
+            color: #ffffff; animation: pulseLogo 2s infinite ease-in-out;
+        }
+        @keyframes pulseLogo {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); }
+        }
+        .progress-bar-container { width: 150px; height: 3px; background-color: #1c1c1e; border-radius: 10px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background-color: #ffffff; animation: loadProgress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes loadProgress { to { width: 100%; } }
+    </style>
+</head>
+<body>
+
+    <!-- Экран предзагрузки -->
+    <div class="splash-screen" id="splash">
+        <div class="splash-logo"> AE HACKYO</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- Задний фон: плавающие OLED частицы -->
+    <canvas id="particles-canvas"></canvas>
+
+    <div class="app-wrapper">
+
+        <!-- Шапка -->
+        <header class="header">
+            <div class="logo"> AE HACKYO</div>
+            <div class="badges">
+                <span class="badge" id="user-status">USER</span>
+                <span class="badge">v1.2</span>
+            </div>
+        </header>
+
+        <!-- iOS Индикатор страниц -->
+        <div class="page-indicator-container">
+            <div class="page-indicator-bar" id="page-indicator"></div>
+        </div>
+
+        <!-- ЭКРАН 1: ГЛАВНАЯ -->
+        <main class="content-screen active" id="screen-main">
+            <div class="welcome-section">
+                <h1 class="welcome-title"><span data-lang="hi">Привет</span>, <span id="user-name">Guest</span>!</h1>
+                <p class="welcome-subtitle" data-lang="welcome_sub">Добро пожаловать в хаб плагинов After Effects</p>
+            </div>
+
+            <div class="premium-card">
+                <div class="line-icon-large"><i data-lucide="send"></i></div>
+                <h2 data-lang="tg_title">Наш Telegram-канал</h2>
+                <p data-lang="tg_desc">Центральный ресурс проекта @after_effects_plugins_Hackyo. Здесь публикуются уникальные утилиты, ломанные скрипты, пресеты и софт для моушен-дизайна.</p>
+                <button class="main-btn" data-lang="tg_btn" onclick="window.open('https://t.me/after_effects_plugins_Hackyo', '_blank')">ОТКРЫТЬ КАНАЛ</button>
+            </div>
+
+            <div class="section-title" data-lang="about_title">О проекте</div>
+            <div class="info-card-large">
+                <p><i data-lucide="zap" class="inline-icon"></i> <span data-lang="about_1"><b>Быстрый доступ:</b> Больше никакого бесконечного скролла ленты. Скачивайте плагины в один клик.</span></p>
+                <p><i data-lucide="shield-check" class="inline-icon"></i> <span data-lang="about_2"><b>Безопасность:</b> Все файлы проходят ручную проверку на вирусы перед публикацией.</span></p>
+                <p><i data-lucide="monitor" class="inline-icon"></i> <span data-lang="about_3"><b>Совместимость:</b> В каталоге указаны версии After Effects и операционные системы (Win/Mac).</span></p>
+                <p><i data-lucide="refresh-cw" class="inline-icon"></i> <span data-lang="about_4"><b>Ежедневные обновления:</b> База плагинов пополняется каждый день актуальными версиями софта и библиотеками.</span></p>
+                <p><i data-lucide="heart" class="inline-icon"></i> <span data-lang="about_5"><b>От сообщества к сообществу:</b> Мы развиваем ресурс без навязчивой рекламы ради удобства каждого VFX-специалиста.</span></p>
+            </div>
+
+            <div class="section-title" data-lang="faq_title">Часто задаваемые вопросы</div>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question"><span data-lang="faq_q1">Как устанавливать плагины?</span> <i data-lucide="plus"></i></div>
+                    <div class="faq-answer" data-lang="faq_a1">Обычно файлы `.aex` нужно скопировать в папку `C:\Program Files\Adobe\Adobe After Effects (версия)\Support Files\Plug-ins`. Подробная инструкция есть внутри каждого архива.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><span data-lang="faq_q5">Как устанавливать скрипты (.jsx и .jsxbin)?</span> <i data-lucide="plus"></i></div>
+                    <div class="faq-answer" data-lang="faq_a5">Скрипты переместите в директорию `Support Files/Scripts/ScriptUI Panels`. После перезапуска After Effects они появятся в верхнем меню «Window» («Окно»).</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><span data-lang="faq_q2">Что делать, если плагин просит лицензию?</span> <i data-lucide="plus"></i></div>
+                    <div class="faq-answer" data-lang="faq_a2">Все плагины в нашем каталоге уже вылечены (пре-активированы) или содержат текстовый файл со специальным ключом/кряком внутри архива.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><span data-lang="faq_q4">Почему появился красный крест и как его убрать?</span> <i data-lucide="plus"></i></div>
+                    <div class="faq-answer" data-lang="faq_a4">Красный крест означает, что плагин установлен некорректно. Обычно проблема решается полной переустановкой плагина по инструкции.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><span data-lang="faq_q3">Будут ли плагины для macOS?</span> <i data-lucide="plus"></i></div>
+                    <div class="faq-answer" data-lang="faq_a3">Да, мы сейчас активно ищем для них плагины и будем постепенно добавлять их в каталог.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><span data-lang="faq_q6">Поддерживает ли софт версии AE 2025/2026?</span> <i data-lucide="plus"></i></div>
+                    <div class="faq-answer" data-lang="faq_a6">Подавляющее большинство представленных плагинов (включая Deep Glow, Sapphire, Twixtor) полностью протестированы и совместимы с новейшими выпусками Adobe After Effects.</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ЭКРАН 2: ПЛАГИНЫ -->
+        <main class="content-screen" id="screen-plugins">
+            <h1 class="welcome-title" data-lang="catalog_title">Каталог плагинов</h1>
+            <p class="welcome-subtitle" data-lang="catalog_sub">Используй поиск и вкладку избранного</p>
+
+            <div class="search-and-filters">
+                <input type="text" id="plugin-search" placeholder="Поиск плагина...">
+                
+                <div class="filter-tabs">
+                    <div class="filter-tab active" id="tab-all-plugins" data-lang="tab_all">Все плагины</div>
+                    <div class="filter-tab" id="tab-fav-plugins" data-lang="tab_fav">Сохраненные</div>
+                </div>
+            </div>
+
+            <div class="plugin-list" id="plugins-box">
+                <!-- САМ AFTER EFFECTS -->
+                <div class="plugin-item" data-id="adobe-ae" data-link="https://t.me/after_effects_plugins_Hackyo/7644" data-name="adobe after effects ае скачать софт программа 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Adobe After Effects (2020-2026)</h4>
+                            <span class="tag hybrid">WIN / MAC</span>
+                        </div>
+                        <p data-lang="p_ae">Официальные предустановленные версии AE. Выберите нужный год внутри архива.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="adobe-ae"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Element 3D -->
+                <div class="plugin-item" data-id="element-3d" data-link="https://t.me/after_effects_plugins_Hackyo" data-name="element 3d v2.2 3d объекты ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Element 3D v2.2</h4>
+                            <span class="tag win">WIN</span>
+                        </div>
+                        <p data-lang="p_e3d">Рендеринг 3D-объектов в реальном времени. Поддержка AE 2020-2026.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="element-3d"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Deep Glow -->
+                <div class="plugin-item" data-id="deep-glow" data-link="https://t.me/after_effects_plugins_Hackyo/7635" data-name="deep glow свечение размытие ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Deep Glow</h4>
+                            <span class="tag hybrid">WIN / MAC</span>
+                        </div>
+                        <p data-lang="p_glow">Физически правильное свечение. Совместим с AE 2020-2026.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="deep-glow"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Trapcode Particular -->
+                <div class="plugin-item" data-id="particular" data-link="https://t.me/after_effects_plugins_Hackyo" data-name="particular trapcode частицы ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Trapcode Particular</h4>
+                            <span class="tag win">WIN</span>
+                        </div>
+                        <p data-lang="p_part">Органические 3D-эффекты частиц. Адаптирован под AE 2020-2026.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="particular"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Twixtor -->
+                <div class="plugin-item" data-id="twixtor" data-link="https://t.me/after_effects_plugins_Hackyo/7700" data-name="twixtor твикстор слоумо slow motion замедление ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Twixtor</h4>
+                            <span class="tag hybrid">WIN / MAC</span>
+                        </div>
+                        <p data-lang="p_twixtor">Продвинутый плагин для создания сверхплавного замедления видео.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="twixtor"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Sapphire -->
+                <div class="plugin-item" data-id="sapphire" data-link="https://t.me/after_effects_plugins_Hackyo/7621" data-name="sapphire сапфир эффекты переходы genarts ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Boris FX Sapphire</h4>
+                            <span class="tag win">WIN</span>
+                        </div>
+                        <p data-lang="p_sapphire">Легендарный набор из сотен эффектов, свечений и переходов премиум-класса.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="sapphire"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- BCC -->
+                <div class="plugin-item" data-id="bcc" data-link="https://t.me/after_effects_plugins_Hackyo/7623" data-name="bcc boris continuum complete борис континуум эффекты титры ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Boris Continuum (BCC)</h4>
+                            <span class="tag win">WIN</span>
+                        </div>
+                        <p data-lang="p_bcc">Огромный пакет инструментов для восстановления видео, титров и цветокоррекции.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="bcc"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Magic Bullet Looks -->
+                <div class="plugin-item" data-id="mb-looks" data-link="https://t.me/after_effects_plugins_Hackyo/7625" data-name="magic bullet looks лукс цветокоррекция грейдинг киношный цвет ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Magic Bullet Looks</h4>
+                            <span class="tag win">WIN</span>
+                        </div>
+                        <p data-lang="p_looks">Мощный инструмент для профессиональной цветокоррекции и стилизации.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="mb-looks"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Twitch -->
+                <div class="plugin-item" data-id="twitch" data-link="https://t.me/after_effects_plugins_Hackyo/7627" data-name="twitch твич помехи глитч искажение тряска ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Video Copilot Twitch</h4>
+                            <span class="tag hybrid">WIN / MAC</span>
+                        </div>
+                        <p data-lang="p_twitch">Плагин для синхронизации хаотических световых вспышек, блюра и тряски под бит.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="twitch"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Glitchify -->
+                <div class="plugin-item" data-id="glitchify" data-link="https://t.me/after_effects_plugins_Hackyo/7629" data-name="glitchify глитчифай глитч помехи искажение эффект ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Glitchify</h4>
+                            <span class="tag hybrid">WIN / MAC</span>
+                        </div>
+                        <p data-lang="p_glitchify">Легкое создание трендовых аналоговых и цифровых глитч-эффектов в один клик.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="glitchify"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Flow -->
+                <div class="plugin-item" data-id="flow" data-link="https://t.me/after_effects_plugins_Hackyo/7631" data-name="flow флоу графики интерполяция кривые скорость анимации ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Flow</h4>
+                            <span class="tag hybrid">WIN / MAC</span>
+                        </div>
+                        <p data-lang="p_flow_script">Удобный графический редактор кривых для настройки идеальной плавности ключей.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="flow"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Console -->
+                <div class="plugin-item" data-id="console" data-link="https://t.me/after_effects_plugins_Hackyo/7633" data-name="fx console консоль видеокопайлот быстрый поиск эффектов ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>FX Console</h4>
+                            <span class="tag hybrid">WIN / MAC</span>
+                        </div>
+                        <p data-lang="p_console">Моментальный поиск и применение эффектов по горячей клавише.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="console"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- Flowframes -->
+                <div class="plugin-item" data-id="flowframes" data-link="https://t.me/after_effects_plugins_Hackyo/7637" data-name="flowframes флоуфреймс софт интерполяция кадров нейросеть плавность fps 60fps">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>Flowframes</h4>
+                            <span class="tag win">WIN</span>
+                        </div>
+                        <p data-lang="p_flowframes">Отдельный софт на базе ИИ для интерполяции кадров и повышения FPS видео.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="flowframes"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+
+                <!-- RSMB -->
+                <div class="plugin-item" data-id="rsmb" data-link="https://t.me/after_effects_plugins_Hackyo/7642" data-name="rsmb reel smart motion blur размытие движения блюр скорость ae 2020 2021 2022 2023 2024 2025 2026">
+                    <div class="plugin-click-area"></div>
+                    <div class="plugin-info">
+                        <div class="plugin-header-row">
+                            <h4>ReelSmart Motion Blur (RSMB)</h4>
+                            <span class="tag hybrid">WIN / MAC</span>
+                        </div>
+                        <p data-lang="p_rsmb">Автоматическое добавление естественного размытия движения (motion blur) на видео.</p>
+                    </div>
+                    <div class="plugin-actions">
+                        <button class="fav-btn" data-id="rsmb"><i data-lucide="bookmark"></i></button>
+                        <button class="plugin-btn" data-lang="btn_download">Скачать</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Заказ плагина -->
+            <div class="request-card">
+                <h3 data-lang="req_title">Не нашли нужный плагин?</h3>
+                <p data-lang="req_sub">Мы найдем его, вылечим и добавим в каталог специально для вас!</p>
+            </div>
+        </main>
+
+        <!-- ЭКРАН 3: НАСТРОЙКИ -->
+        <main class="content-screen" id="screen-settings">
+            <h1 class="welcome-title" data-lang="set_title">Настройки</h1>
+            <p class="welcome-subtitle" data-lang="set_sub">Управление твоим профилем</p>
+
+            <div class="settings-list">
+                <!-- СМЕНА ЯЗЫКА -->
+                <div class="setting-item">
+                    <div class="setting-text">
+                        <span class="setting-name" data-lang="set_lang">Язык приложения</span>
+                        <span class="setting-desc" data-lang="set_lang_desc">Выберите удобный язык интерфейса</span>
+                    </div>
+                    <select id="lang-select" class="lang-select">
+                        <option value="ru">Русский</option>
+                        <option value="en">English</option>
+                        <option value="ro">Română</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+
+                <!-- СМЕНА ТЕМЫ -->
+                <div class="setting-item">
+                    <div class="setting-text">
+                        <span class="setting-name" data-lang="set_theme">Светлая тема</span>
+                        <span class="setting-desc" data-lang="set_theme_desc">Переключить оформление интерфейса</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-theme">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item switch-item">
+                    <div class="setting-text">
+                        <span class="setting-name" data-lang="set_push">Push-уведомления</span>
+                        <span class="setting-desc" data-lang="set_push_desc">Узнавать о выходе новых плагинов первым</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-notifications" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item switch-item">
+                    <div class="setting-text">
+                        <span class="setting-name" data-lang="set_haptic">Haptic Feedback (Вибрация)</span>
+                        <span class="setting-desc" data-lang="set_haptic_desc">Тактильная отдача при нажатии кнопок</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-haptic" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item click-item" id="btn-clear-cache">
+                    <div class="setting-text">
+                        <span class="setting-name" data-lang="set_cache">Очистить кэш приложения</span>
+                        <span class="setting-desc" id="cache-status" data-lang="set_cache_desc">Занято кэшем: 4.2 MB</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="arrow-icon"></i>
+                </div>
+
+                <div class="setting-item click-item close-item" onclick="window.Telegram.WebApp.close()">
+                    <div class="setting-text">
+                        <span class="setting-name" style="color: #ff453a;" data-lang="set_exit">Выйти из приложения</span>
+                        <span class="setting-desc" data-lang="set_exit_desc">Закрыть окно Mini App</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Нижнее меню -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-tab="main">
+                <div class="nav-icon"><i data-lucide="home"></i></div>
+                <span data-lang="nav_main">Главная</span>
+            </div>
+            <div class="nav-item" data-tab="plugins">
+                <div class="nav-icon"><i data-lucide="layers"></i></div>
+                <span data-lang="nav_plugins">Плагины</span>
+            </div>
+            <div class="nav-item" data-tab="settings">
+                <div class="nav-icon"><i data-lucide="settings"></i></div>
+                <span data-lang="nav_settings">Настройки</span>
+            </div>
+        </nav>
+
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО -->
+    <div class="modal-overlay" id="request-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="m_head" data-lang="m_head">Заказать плагин / софт</h3>
+                <button class="close-modal-btn" id="close-request-btn"><i data-lucide="x"></i></button>
+            </div>
+            <p id="m_desc" data-lang="m_desc" style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
+                Напишите название плагина, скрипта или расширения After Effects. Мы найдем его, проверим на вирусы и выложим в каталог в ближайшее время.
+            </p>
+            <input type="text" id="request-input" class="modal-input" placeholder="Sapphire, Twitch...">
+            <button class="main-btn" id="send-request-btn" style="background-color: var(--accent-blue); color: white;" data-lang="m_btn">ОТПРАВИТЬ ЗАЯВКУ</button>
+        </div>
+    </div>
+
+    <!-- ЛОГИКА ПРИЛОЖЕНИЯ -->
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // РАСШИРЕННЫЙ СЛОВАРЬ МУЛЬТИЯЗЫЧНОСТИ
+        const translations = {
+            ru: {
+                hi: "Привет", welcome_sub: "Добро пожаловать в хаб плагинов After Effects",
+                tg_title: "Наш Telegram-канал", tg_desc: "Центральный ресурс проекта @after_effects_plugins_Hackyo. Здесь публикуются уникальные утилиты, ломанные скрипты, пресеты и софт для моушен-дизайна.", tg_btn: "ОТКРЫТЬ КАНАЛ",
+                about_title: "О проекте", 
+                about_1: "<b>Быстрый доступ:</b> Больше никакого бесконечного скролла ленты. Скачивайте плагины в один клик.", 
+                about_2: "<b>Безопасность:</b> Все файлы проходят ручную проверку на вирусы перед публикацией.", 
+                about_3: "<b>Совместимость:</b> В каталоге указаны версии After Effects и операционные системы (Win/Mac).",
+                about_4: "<b>Ежедневные обновления:</b> База плагинов пополняется каждый день актуальными версиями софта и библиотеками.",
+                about_5: "<b>От сообщества к сообществу:</b> Мы развиваем ресурс без навязчивой рекламы ради удобства каждого VFX-специалиста.",
+                faq_title: "Часто задаваемые вопросы", 
+                faq_q1: "Как устанавливать плагины?", faq_a1: "Обычно файлы `.aex` нужно скопировать в папку `C:\\Program Files\\Adobe\\Adobe After Effects (версия)\\Support Files\\Plug-ins`. Подробная инструкция есть внутри каждого архива.", 
+                faq_q5: "Как устанавливать скрипты (.jsx и .jsxbin)?", faq_a5: "Скрипты переместите в директорию `Support Files/Scripts/ScriptUI Panels`. После перезапуска After Effects они появятся в верхнем меню «Window» («Окно»).",
+                faq_q2: "Что делать, если плагин просит лицензию?", faq_a2: "Все плагины в нашем каталоге уже вылечены (пре-активированы) или содержат текстовый файл со специальным ключом/кряком внутри архива.", 
+                faq_q4: "Почему появился красный крест и как его убрать?", faq_a4: "Красный крест означает, что плагин установлен некорректно. Обычно проблема решается полной переустановкой плагина по инструкции.", 
+                faq_q3: "Будут ли плагины для macOS?", faq_a3: "Да, мы сейчас активно ищем для них плагины и будем постепенно добавлять их в каталог.",
+                faq_q6: "Поддерживает ли софт версии AE 2025/2026?", faq_a6: "Подавляющее большинство представленных плагинов (включая Deep Glow, Sapphire, Twixtor) полностью протестированы и совместимы с новейшими выпусками Adobe After Effects.",
+                catalog_title: "Каталог плагинов", catalog_sub: "Используй поиск и вкладку избранного", tab_all: "Все плагины", tab_fav: "Сохраненные", btn_download: "Скачать", search_ph: "Поиск плагина...",
+                p_ae: "Официальные предустановленные версии AE. Выберите нужный год внутри архива.", p_e3d: "Рендеринг 3D-объектов в реальном времени. Поддержка AE 2020-2026.", p_glow: "Физически правильное свечение. Совместим с AE 2020-2026.", p_part: "Органические 3D-эффекты частиц. Адаптирован под AE 2020-2026.",
+                p_twixtor: "Продвинутый плагин для создания сверхплавного замедления видео.", p_sapphire: "Легендарный набор из сотен эффектов, свечений и переходов премиум-класса.", p_bcc: "Огромный пакет инструментов для восстановления видео, титров и цветокоррекции.", p_looks: "Мощный инструмент для профессиональной цветокоррекции и стилизации.", p_twitch: "Плагин для синхронизации хаотических световых вспышек, блюра и тряски под бит.", p_glitchify: "Легкое создание трендовых аналоговых и цифровых глитч-эффектов в один клик.", p_flow_script: "Удобный графический редактор кривых для настройки идеальной плавности ключей.", p_console: "Моментальный поиск и применение эффектов по горячей клавише.", p_flowframes: "Отдельный софт на базе ИИ для интерполяции кадров и повышения FPS видео.", p_rsmb: "Автоматическое добавление естественного размытия движения (motion blur) на видео.",
+                req_title: "Не нашли нужный плагин?", req_sub: "Мы активно будем добовлять новые плагины!", req_btn: "ЗАКАЗАТЬ ПЛАГИН",
+                set_title: "Настройки", set_sub: "Управление твоим профилем", set_lang: "Язык приложения", set_lang_desc: "Выберите удобный язык интерфейса", set_theme: "Светлая тема", set_theme_desc: "Переключить оформление интерфейса", set_push: "Push-уведомления", set_push_desc: "Узнавать о выходе новых плагинов первым", set_haptic: "Haptic Feedback (Вибрация)", set_haptic_desc: "Тактильная отдача при нажатии кнопок", set_cache: "Очистить кэш приложения", set_cache_desc: "Занято кэшем: 4.2 MB", set_exit: "Выйти из приложения", set_exit_desc: "Закрыть окно Mini App",
+                nav_main: "Главная", nav_plugins: "Плагины", nav_settings: "Настройки",
+                m_head: "Заказать плагин / софт", m_desc: "Напишите название плагина, скрипта или расширения After Effects. Мы найдем его и добавим в каталог.", m_btn: "ОТПРАВИТЬ ЗАЯВКУ", m_err: "Пожалуйста, введите название плагина.", m_ok: "Заявка отправлена!", m_ok_sub: "Мы приняли ваш заказ. Как только найдем — добавим!"
+            },
+            en: {
+                hi: "Hello", welcome_sub: "Welcome to the After Effects plugin hub",
+                tg_title: "Our Telegram Channel", tg_desc: "The central resource of @after_effects_plugins_Hackyo. We publish unique tools, cracked scripts, presets, and motion design software.", tg_btn: "OPEN CHANNEL",
+                about_title: "About Project", 
+                about_1: "<b>Quick Access:</b> No more endless feed scrolling. Download plugins in one click.", 
+                about_2: "<b>Security:</b> All files are manually verified for viruses before publication.", 
+                about_3: "<b>Compatibility:</b> The catalog lists AE versions and operating systems (Win/Mac).",
+                about_4: "<b>Daily Updates:</b> Our plugin base is updated daily with the latest software and libraries.",
+                about_5: "<b>From Community to Community:</b> We develop this project without annoying ads for the convenience of every VFX artist.",
+                faq_title: "Frequently Asked Questions", 
+                faq_q1: "How to install plugins?", faq_a1: "Usually, `.aex` files need to be copied to `C:\\Program Files\\Adobe\\Adobe After Effects (version)\\Support Files\\Plug-ins` folder. Instructions inside.", 
+                faq_q5: "How to install scripts (.jsx and .jsxbin)?", faq_a5: "Move scripts to `Support Files/Scripts/ScriptUI Panels`. After restarting AE, they will appear in the Window menu.",
+                faq_q2: "What if the plugin asks for a license?", faq_a2: "All plugins in our catalog are pre-activated or contain a key/crack inside.", 
+                faq_q4: "Why did a red cross appear and how to remove it?", faq_a4: "A red cross means the plugin was installed incorrectly. Usually resolved by a clean reinstall.", 
+                faq_q3: "Will there be plugins for macOS?", faq_a3: "Yes, we are actively searching for Mac versions and will add them gradually.",
+                faq_q6: "Does the software support AE 2025/2026?", faq_a6: "The vast majority of the presented plugins (including Deep Glow, Sapphire, Twixtor) are fully tested and compatible.",
+                catalog_title: "Plugin Catalog", catalog_sub: "Use search and the favorites tab", tab_all: "All Plugins", tab_fav: "Favorites", btn_download: "Download", search_ph: "Search plugin...",
+                p_ae: "Official pre-installed AE versions. Choose the required year inside the archive.", p_e3d: "Real-time 3D object rendering. Supports AE 2020-2026.", p_glow: "Physically accurate glow effect. Compatible with AE 2020-2026.", p_part: "Organic 3D particle effects. Adapted for AE 2020-2026.",
+                p_twixtor: "Advanced plugin for creating super smooth slow-motion videos.", p_sapphire: "Legendary suite of hundreds of premium effects, glows, and transitions.", p_bcc: "Massive toolkit for video restoration, titling, and color correction.", p_looks: "Powerful tool for professional color grading and stylization.", p_twitch: "Plugin to sync chaotic light flashes, blur, and shakes to the beat.", p_glitchify: "Easy creation of trendy analog and digital glitch effects in one click.", p_flow_script: "Convenient graph curve editor for adjusting flawless keyframe easing.", p_console: "Instantly search and apply effects using a hotkey.", p_flowframes: "Standalone AI-based software for frame interpolation and increasing FPS.", p_rsmb: "Automatically apply natural motion blur to your video.",
+                req_title: "Didn't find the plugin you need?", req_sub: "We will find it, patch it, and add it to the catalog just for you!", req_btn: "REQUEST PLUGIN",
+                set_title: "Settings", set_sub: "Manage your profile", set_lang: "App Language", set_lang_desc: "Choose your interface language", set_theme: "Light Theme", set_theme_desc: "Switch the application appearance", set_push: "Push Notifications", set_push_desc: "Be the first to know about new plugins", set_haptic: "Haptic Feedback", set_haptic_desc: "Tactile vibration when pressing buttons", set_cache: "Clear App Cache", set_cache_desc: "Cache used: 4.2 MB", set_exit: "Exit Application", set_exit_desc: "Close the Mini App window",
+                nav_main: "Home", nav_plugins: "Plugins", nav_settings: "Settings",
+                m_head: "Request Plugin / Software", m_desc: "Write the name of the After Effects plugin or script. We will find it and add it to the catalog.", m_btn: "SUBMIT REQUEST", m_err: "Please enter a plugin name.", m_ok: "Request sent!", m_ok_sub: "We have accepted your request. As soon as we find it, we will add it!"
+            }
+        };
+
+        let currentLang = localStorage.getItem('app-lang') || 'en';
+        let isHapticEnabled = true;
+        let favoritePlugins = JSON.parse(localStorage.getItem('fav-plugins')) || [];
+        let currentFilter = 'all';
+
+        // Глобальный флаг цвета частиц (белые по умолчанию)
+        let particleColor = 'rgba(255, 255, 255, ';
+
+        // Функция перевода
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('app-lang', lang);
+            document.getElementById('lang-select').value = lang;
+
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+
+            const sInput = document.getElementById('plugin-search');
+            if (sInput) sInput.placeholder = translations[lang]['search_ph'];
+        }
+
+        // Функция темы (обновленный чистый Light Mode)
+        function setTheme(isLight) {
+            if (isLight) {
+                document.documentElement.setAttribute('data-theme', 'light');
+                tg.setHeaderColor('#ffffff');
+                tg.setBackgroundColor('#ffffff');
+                localStorage.setItem('app-theme', 'light');
+                particleColor = 'rgba(0, 0, 0, '; // Частицы становятся черными
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                tg.setHeaderColor('#000000');
+                tg.setBackgroundColor('#000000');
+                localStorage.setItem('app-theme', 'dark');
+                particleColor = 'rgba(255, 255, 255, '; // Частицы возвращаются в белый
+            }
+        }
+
+        function triggerVibration() {
+            if (isHapticEnabled && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+
+        function updateFavUI() {
+            const favButtons = document.querySelectorAll('.fav-btn');
+            favButtons.forEach(btn => {
+                const id = btn.getAttribute('data-id');
+                const icon = btn.querySelector('svg');
+                if (favoritePlugins.includes(id)) {
+                    btn.classList.add('active');
+                    if (icon) icon.setAttribute('fill', '#ffd60a');
+                } else {
+                    btn.classList.remove('active');
+                    if (icon) icon.removeAttribute('fill');
+                }
+            });
+        }
+
+        function initAppLogic() {
+            changeLanguage(currentLang);
+            const savedTheme = localStorage.getItem('app-theme') || 'dark';
+            const themeCheckbox = document.getElementById('toggle-theme');
+            if (savedTheme === 'light') {
+                themeCheckbox.checked = true;
+                setTheme(true);
+            } else {
+                setTheme(false);
+            }
+
+            updateFavUI();
+
+            document.getElementById('lang-select').addEventListener('change', (e) => {
+                triggerVibration();
+                changeLanguage(e.target.value);
+            });
+
+            themeCheckbox.addEventListener('change', (e) => {
+                triggerVibration();
+                setTheme(e.target.checked);
+            });
+
+            // Избранное
+            document.querySelectorAll('.fav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = btn.getAttribute('data-id');
+                    triggerVibration();
+
+                    if (favoritePlugins.includes(id)) {
+                        favoritePlugins = favoritePlugins.filter(item => item !== id);
+                    } else {
+                        favoritePlugins.push(id);
+                    }
+
+                    localStorage.setItem('fav-plugins', JSON.stringify(favoritePlugins));
+                    updateFavUI();
+                    if (currentFilter === 'fav') applyPluginFilter();
+                });
+            });
+
+            // Кнопка Скачать и клик по карточке плагина
+            document.querySelectorAll('.plugin-item').forEach(item => {
+                const link = item.getAttribute('data-link');
+                const downloadBtn = item.querySelector('.plugin-btn');
+                const clickArea = item.querySelector('.plugin-click-area');
+
+                const handleDownload = (e) => {
+                    e.stopPropagation(); // Исключаем дублирование событий
+                    triggerVibration();
+
+                    if (link) {
+                        if (tg.openLink) {
+                            tg.openLink(link);
+                        } else {
+                            window.open(link, '_blank');
+                        }
+                    } else {
+                        alert(currentLang === 'ru' ? 'Ссылка временно отсутствует.' : 'Link is temporary unavailable.');
+                    }
+                };
+
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', handleDownload);
+                }
+                if (clickArea) {
+                    clickArea.addEventListener('click', handleDownload);
+                }
+            });
+
+            // FAQ
+            document.querySelectorAll('.faq-question').forEach(q => {
+                q.addEventListener('click', () => {
+                    const item = q.parentElement;
+                    const answer = item.querySelector('.faq-answer');
+                    triggerVibration();
+                    if (item.classList.contains('open')) {
+                        answer.style.maxHeight = '0px';
+                        item.classList.remove('open');
+                    } else {
+                        item.classList.add('open');
+                        answer.style.maxHeight = answer.scrollHeight + 'px';
+                    }
+                });
+            });
+        }
+
+        function checkAndBuildIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+                setTimeout(initAppLogic, 80); 
+            } else {
+                setTimeout(checkAndBuildIcons, 50);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', checkAndBuildIcons);
+
+        // SPLASH SCREEN
+        const splash = document.getElementById('splash');
+        window.addEventListener('load', () => {
+            setTimeout(() => { if(splash) splash.classList.add('fade-out'); }, 1800);
+        });
+
+        // КАНВАС ЧАСТИЦ
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5; // Слегка увеличили максимальный размер
+                this.speedY = -(Math.random() * 0.5 + 0.15); // Отрегулировали скорость подъема
+                this.speedX = (Math.random() * 0.2 - 0.1); // Небольшой дрифт по горизонтали для реалистичности
+                this.opacity = Math.random() * 0.6 + 0.15; // Сделали более читаемыми
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                if (this.y < 0) {
+                    this.y = canvas.height;
+                    this.x = Math.random() * canvas.width;
+                }
+                if (this.x < 0 || this.x > canvas.width) {
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                // Динамическая смена цвета rgba(...) в зависимости от текущей темы
+                ctx.fillStyle = `${particleColor}${this.opacity})`;
+                ctx.fill();
+            }
+        }
+        // Создаем 40 продвинутых частиц
+        for (let i = 0; i < 40; i++) particles.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // TELEGRAM USER DATA & AUTO-LANGUAGE
+        let username = "Unknown";
+        let userid = "000000";
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            username = user.username ? `@${user.username}` : `${user.first_name}`;
+            userid = user.id;
+            document.getElementById('user-name').innerText = user.first_name;
+            if (user.is_premium) {
+                document.getElementById('user-status').innerText = '🔥 PREMIUM';
+                document.getElementById('user-status').style.color = '#af52de';
+            }
+            // Умный выбор языка на основе локали ТГ
+            if (user.language_code && !localStorage.getItem('app-lang')) {
+                const code = user.language_code.toLowerCase();
+                if (code.startsWith('ru')) currentLang = 'ru';
+                else if (code.startsWith('ro')) currentLang = 'ro';
+                else if (code.startsWith('es')) currentLang = 'es';
+                else if (code.startsWith('de')) currentLang = 'de';
+                else if (code.startsWith('fr')) currentLang = 'fr';
+                else currentLang = 'en';
+            }
+        }
+
+        // ТАБЫ НАВИГАЦИИ
+        const navItems = document.querySelectorAll('.nav-item');
+        const screens = document.querySelectorAll('.content-screen');
+        const indicator = document.getElementById('page-indicator');
+
+        navItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                
+                const targetTab = item.getAttribute('data-tab');
+                screens.forEach(screen => {
+                    screen.classList.remove('active');
+                    if (screen.id === `screen-${targetTab}`) screen.classList.add('active');
+                });
+
+                if (indicator) indicator.style.transform = `translateX(${index * 100}%)`;
+                triggerVibration();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            });
+        });
+
+        // ЖИВОЙ ПОИСК
+        const searchInput = document.getElementById('plugin-search');
+        const pluginItems = document.querySelectorAll('.plugin-item');
+
+        function applyPluginFilter() {
+            const searchValue = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            pluginItems.forEach(item => {
+                const searchName = item.getAttribute('data-name');
+                const id = item.getAttribute('data-id');
+                const matchesSearch = searchName.includes(searchValue);
+                const matchesTab = (currentFilter === 'all') || (currentFilter === 'fav' && favoritePlugins.includes(id));
+
+                item.style.display = (matchesSearch && matchesTab) ? 'flex' : 'none';
+            });
+        }
+
+        if (searchInput) searchInput.addEventListener('input', applyPluginFilter);
+
+        document.getElementById('tab-all-plugins').addEventListener('click', () => {
+            triggerVibration();
+            document.getElementById('tab-all-plugins').classList.add('active');
+            document.getElementById('tab-fav-plugins').classList.remove('active');
+            currentFilter = 'all';
+            applyPluginFilter();
+        });
+
+        document.getElementById('tab-fav-plugins').addEventListener('click', () => {
+            triggerVibration();
+            document.getElementById('tab-all-plugins').classList.remove('active');
+            document.getElementById('tab-fav-plugins').classList.add('active');
+            currentFilter = 'fav';
+            applyPluginFilter();
+        });
+
+        // ЗАКАЗ ПЛАГИНА + УВЕДОМЛЕНИЕ ДЛЯ @tryffx
+        const requestModal = document.getElementById('request-modal');
+        const openRequestBtn = document.getElementById('open-request-btn');
+        const closeRequestBtn = document.getElementById('close-request-btn');
+        const sendRequestBtn = document.getElementById('send-request-btn');
+        const requestInput = document.getElementById('request-input');
+
+        openRequestBtn.addEventListener('click', () => { triggerVibration(); requestModal.classList.add('active'); });
+        closeRequestBtn.addEventListener('click', () => { triggerVibration(); requestModal.classList.remove('active'); });
+
+        sendRequestBtn.addEventListener('click', () => {
+            triggerVibration();
+            const pluginValue = requestInput.value.trim();
+            if (pluginValue === '') {
+                tg.showPopup({ title: 'Error', message: translations[currentLang]['m_err'], buttons: [{type: 'ok'}] });
+                return;
+            }
+
+            const orderData = {
+                target_admin: "@tryffx",
+                user_id: userid,
+                user_username: username,
+                requested_plugin: pluginValue,
+                timestamp: new Date().toISOString()
+            };
+
+            fetch('https://your-bot-backend.com/api/new-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            }).catch(err => console.log("Бэкенд бота не подключен, обрабатываем локально через TG API"));
+
+            requestModal.classList.remove('active');
+            requestInput.value = '';
+            
+            tg.showPopup({ 
+                title: translations[currentLang]['m_ok'], 
+                message: `${translations[currentLang]['m_ok_sub']} ( "${pluginValue}" )`, 
+                buttons: [{type: 'ok'}] 
+            });
+        });
+
+        // ОСТАЛЬНЫЕ НАСТРОЙКИ
+        document.getElementById('toggle-haptic').addEventListener('change', (e) => {
+            isHapticEnabled = e.target.checked;
+            if (isHapticEnabled && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        });
+
+        document.getElementById('toggle-notifications').addEventListener('change', (e) => {
+            triggerVibration();
+            tg.showPopup({ 
+                title: currentLang === 'ru' ? 'Уведомления' : 'Notifications', 
+                message: e.target.checked ? 'ON' : 'OFF', 
+                buttons: [{type: 'ok'}] 
+            });
+        });
+
+        document.getElementById('btn-clear-cache').addEventListener('click', () => {
+            triggerVibration()
+            document.getElementById('cache-status').innerText = translations[currentLang]['set_cache_desc'].replace('4.2', '0');
+            tg.showPopup({ 
+                title: currentLang === 'ru' ? 'Кэш очищен' : 'Cache cleared', 
+                message: 'OK', 
+                buttons: [{type: 'ok'}] 
+            });
+        });
+    </script>
+</body>
+</html>
